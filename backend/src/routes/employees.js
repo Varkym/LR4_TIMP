@@ -8,9 +8,13 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// Настройка multer для загрузки фотографий
-const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'employees');
-if (!fs.existsSync(uploadDir)) {
+// На Vercel единственная папка куда можно писать — /tmp
+// Локально — папка uploads/employees в проекте
+const uploadDir = process.env.VERCEL
+    ? '/tmp'
+    : path.join(__dirname, '..', '..', 'uploads', 'employees');
+
+if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
@@ -36,6 +40,7 @@ const upload = multer({
         }
     }
 });
+
 
 // GET /api/employees - Получить всех сотрудников
 router.get('/', verifyToken, async (req, res) => {
