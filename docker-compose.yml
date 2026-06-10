@@ -1,0 +1,66 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║          docker-compose.yml — поднимает всё одной командой  ║
+# ║          docker-compose up --build                          ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+version: '3.9'
+
+services:
+  # ── PostgreSQL база данных ─────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: securevault_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-securevault}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Node.js/Express) ──────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: securevault_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-securevault}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      JWT_SECRET: ${JWT_SECRET:-supersecretjwtkey}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      PORT: 3000
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Frontend (React/Vite → nginx) ─────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: securevault_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+# ── Именованный том для данных Postgres ───────────────────────
+volumes:
+  pgdata:
