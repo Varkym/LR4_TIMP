@@ -118,12 +118,14 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Запуск сервера
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Сервер запущен на порту ${PORT}`);
-    console.log(`📍 URL: http://localhost:${PORT}`);
-    console.log(`🛡️  Защита: Helmet, CORS, Rate Limiting активны`);
-});
+// Запуск сервера — только локально (не на Vercel)
+if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Сервер запущен на порту ${PORT}`);
+        console.log(`📍 URL: http://localhost:${PORT}`);
+        console.log(`🛡️  Защита: Helmet, CORS, Rate Limiting активны`);
+    });
+}
 
 module.exports = app;
