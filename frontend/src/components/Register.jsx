@@ -37,7 +37,7 @@ const Register = () => {
         if (ps.level < 2) { setError('Пароль слишком слабый!'); return; }
         setLoading(true);
         try {
-            await axios.post('http://localhost:3000/api/auth/register', {
+            await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/register`, {
                 login: formData.login, email: formData.email,
                 password: formData.password, role: 'viewer'
             });

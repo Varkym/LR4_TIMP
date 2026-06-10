@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const AuditLog = () => {
     const [logs, setLogs] = useState([]);
     const [filteredLogs, setFilteredLogs] = useState([]);
@@ -51,7 +53,7 @@ const AuditLog = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            const response = await axios.get('http://localhost:3000/api/audit', config);
+            const response = await axios.get(`\${API}/api/audit`, config);
             setLogs(response.data);
         } catch (err) {
             console.error('Ошибка загрузки журнала:', err);
@@ -98,7 +100,7 @@ const AuditLog = () => {
             try { parsedOld = JSON.parse(editForm.Старые_данные); } catch { parsedOld = editForm.Старые_данные; }
             try { parsedNew = JSON.parse(editForm.Новые_данные); } catch { parsedNew = editForm.Новые_данные; }
 
-            await axios.put(`http://localhost:3000/api/audit/${selectedLog.Идентификатор_лога}`, {
+            await axios.put(`\${API}/api/audit/${selectedLog.Идентификатор_лога}`, {
                 Действие: editForm.Действие,
                 Сущность: editForm.Сущность,
                 Старые_данные: parsedOld,
@@ -119,7 +121,7 @@ const AuditLog = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            await axios.delete(`http://localhost:3000/api/audit/${id}`, config);
+            await axios.delete(`\${API}/api/audit/${id}`, config);
             showMsg('Запись удалена', 'success');
             loadLogs();
         } catch (err) {

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const Services = () => {
     const [services, setServices] = useState([]);
     const [filteredServices, setFilteredServices] = useState([]);
@@ -29,7 +31,7 @@ const Services = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            const response = await axios.get('http://localhost:3000/api/services', config);
+            const response = await axios.get(`\${API}/api/services`, config);
             setServices(response.data);
         } catch (err) {
             console.error('Ошибка загрузки услуг:', err);

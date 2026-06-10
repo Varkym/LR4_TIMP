@@ -21,9 +21,22 @@ const usersRoutes = require('./routes/users');
 
 const app = express();
 
-// Настройка CORS - разрешаем запросы только с нашего frontend
+// Настройка CORS - разрешаем localhost и продакшн-фронтенд
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    process.env.FRONTEND_URL,          // URL фронтенда на Vercel/Render
+].filter(Boolean);
+
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+        // Разрешаем запросы без origin (Postman, curl) и из allowed списка
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.some(o => origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com'))) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS: origin ${origin} not allowed`));
+        }
+    },
     credentials: true
 }));
 

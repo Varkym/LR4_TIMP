@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const Employees = () => {
     const [employees, setEmployees] = useState([]);
     const [filteredEmployees, setFilteredEmployees] = useState([]);
@@ -36,7 +38,7 @@ const Employees = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            const response = await axios.get('http://localhost:3000/api/employees', config);
+            const response = await axios.get(`\${API}/api/employees`, config);
             setEmployees(response.data);
         } catch (err) {
             console.error('Ошибка загрузки сотрудников:', err);
@@ -65,7 +67,7 @@ const Employees = () => {
 
         try {
             await axios.post(
-                `http://localhost:3000/api/employees/${employeeId}/photo`,
+                `\${API}/api/employees/${employeeId}/photo`,
                 formData,
                 {
                     headers: {
