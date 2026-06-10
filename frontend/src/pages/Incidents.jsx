@@ -15,6 +15,7 @@ const Incidents = () => {
     const [services, setServices] = useState([]);
     const [employees, setEmployees] = useState([]);
     const [message, setMessage] = useState({ text: '', type: '' });
+    const [confirmDelete, setConfirmDelete] = useState(null); // id инцидента для удаления
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
@@ -122,11 +123,15 @@ const Incidents = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Удалить этот инцидент?')) return;
+    const handleDelete = (id) => {
+        setConfirmDelete(id); // Показываем кастомный модал
+    };
+
+    const confirmDeleteAction = async () => {
+        const id = confirmDelete;
+        setConfirmDelete(null);
         const token = localStorage.getItem('token');
         const config = { headers: { Authorization: `Bearer ${token}` } };
-
         try {
             await axios.delete(`${API}/api/incidents/${id}`, config);
             showMsg('Инцидент удалён', 'success');
@@ -326,6 +331,43 @@ const Incidents = () => {
 
     return (
         <div style={{ minHeight: '100vh', background: 'linear-gradient(145deg, #fef7f0 0%, #fdf2f8 50%, #f0f4ff 100%)' }}>
+
+            {/* Модал подтверждения удаления */}
+            {confirmDelete && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 1000,
+                    background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: '#fff', borderRadius: '20px', padding: '32px',
+                        maxWidth: '380px', width: '90%', textAlign: 'center',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(244,165,192,0.3)'
+                    }}>
+                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>🗑️</div>
+                        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: '#333' }}>
+                            Удалить инцидент?
+                        </h3>
+                        <p style={{ margin: '0 0 24px', color: '#888', fontSize: '14px' }}>
+                            Это действие нельзя отменить
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            <button onClick={() => setConfirmDelete(null)} style={{
+                                padding: '10px 24px', borderRadius: '10px', border: '2px solid #e0e0e0',
+                                background: '#fff', color: '#555', fontSize: '14px', fontWeight: '600',
+                                cursor: 'pointer'
+                            }}>Отмена</button>
+                            <button onClick={confirmDeleteAction} style={{
+                                padding: '10px 24px', borderRadius: '10px', border: 'none',
+                                background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+                                color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer'
+                            }}>Удалить</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Navbar */}
             <nav style={{
                 backgroundColor: 'rgba(255,255,255,0.85)',
