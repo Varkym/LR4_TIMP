@@ -61,9 +61,9 @@ const Incidents = () => {
 
         try {
             const [incRes, srvRes, empRes] = await Promise.all([
-                axios.get(`\${API}/api/incidents`, config),
-                axios.get(`\${API}/api/services`, config),
-                axios.get(`\${API}/api/employees`, config)
+                axios.get(`${API}/api/incidents`, config),
+                axios.get(`${API}/api/services`, config),
+                axios.get(`${API}/api/employees`, config)
             ]);
             setIncidents(incRes.data);
             setServices(srvRes.data);
@@ -97,7 +97,7 @@ const Incidents = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            await axios.post(`\${API}/api/incidents`, formData, config);
+            await axios.post(`${API}/api/incidents`, formData, config);
             showMsg('Инцидент создан!', 'success');
             setShowCreateModal(false);
             resetForm();
@@ -113,7 +113,7 @@ const Incidents = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            await axios.put(`\${API}/api/incidents/${selectedIncident.Идентификатор_инцидента}`, formData, config);
+            await axios.put(`${API}/api/incidents/${selectedIncident.Идентификатор_инцидента}`, formData, config);
             showMsg('Инцидент обновлён!', 'success');
             setShowEditModal(false);
             loadData();
@@ -128,7 +128,7 @@ const Incidents = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            await axios.delete(`\${API}/api/incidents/${id}`, config);
+            await axios.delete(`${API}/api/incidents/${id}`, config);
             showMsg('Инцидент удалён', 'success');
             loadData();
         } catch (err) {

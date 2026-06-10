@@ -31,7 +31,7 @@ const Services = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            const response = await axios.get(`\${API}/api/services`, config);
+            const response = await axios.get(`${API}/api/services`, config);
             setServices(response.data);
         } catch (err) {
             console.error('Ошибка загрузки услуг:', err);

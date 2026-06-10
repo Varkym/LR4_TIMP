@@ -36,7 +36,7 @@ const Users = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            const response = await axios.get(`\${API}/api/users`, config);
+            const response = await axios.get(`${API}/api/users`, config);
             setUsers(response.data);
         } catch (err) {
             console.error('Ошибка загрузки пользователей:', err);
@@ -71,7 +71,7 @@ const Users = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            await axios.put(`\${API}/api/users/${userId}/role`, { role: newRole }, config);
+            await axios.put(`${API}/api/users/${userId}/role`, { role: newRole }, config);
             setUsers(users.map(u => u.Идентификатор_пользователя === userId ? { ...u, Роль: newRole } : u));
             showMsg('Роль изменена', 'success');
         } catch (err) {
@@ -84,7 +84,7 @@ const Users = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            await axios.put(`\${API}/api/users/${userId}/activate`, { active: !currentActive }, config);
+            await axios.put(`${API}/api/users/${userId}/activate`, { active: !currentActive }, config);
             setUsers(users.map(u => u.Идентификатор_пользователя === userId ? { ...u, Активен: !currentActive } : u));
             showMsg(!currentActive ? 'Пользователь активирован' : 'Пользователь заблокирован', 'success');
         } catch (err) {

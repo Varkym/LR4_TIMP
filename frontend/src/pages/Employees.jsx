@@ -38,7 +38,7 @@ const Employees = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
 
         try {
-            const response = await axios.get(`\${API}/api/employees`, config);
+            const response = await axios.get(`${API}/api/employees`, config);
             setEmployees(response.data);
         } catch (err) {
             console.error('Ошибка загрузки сотрудников:', err);
@@ -67,7 +67,7 @@ const Employees = () => {
 
         try {
             await axios.post(
-                `\${API}/api/employees/${employeeId}/photo`,
+                `${API}/api/employees/${employeeId}/photo`,
                 formData,
                 {
                     headers: {
