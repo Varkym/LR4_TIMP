@@ -198,10 +198,18 @@ const Employees = () => {
                             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                                 {/* Фото или инициалы */}
                                 <div style={{ position: 'relative', display: 'inline-block' }}>
-                                    {employee.Фото_путь ? (
+                                    {employee.Фото_путь && employee.Фото && !employee._imgError ? (
                                         <img
-                                            src={`http://localhost:3000${employee.Фото_путь}`}
+                                            src={`${API}${employee.Фото_путь}`}
                                             alt={`${employee.Фамилия} ${employee.Имя}`}
+                                            onError={(e) => {
+                                                // Если фото не загрузилось — показываем инициалы
+                                                setEmployees(prev => prev.map(emp =>
+                                                    emp.Идентификатор_сотрудника === employee.Идентификатор_сотрудника
+                                                        ? { ...emp, _imgError: true }
+                                                        : emp
+                                                ));
+                                            }}
                                             style={{
                                                 width: '80px', height: '80px',
                                                 borderRadius: '50%',
