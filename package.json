@@ -1,0 +1,12 @@
+{
+  "name": "lr4-security-backend",
+  "version": "1.0.0",
+  "description": "Information Security Management System — Backend",
+  "scripts": {
+    "start": "cd backend && node src/app.js",
+    "install-deps": "cd backend && npm install"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
