@@ -116,8 +116,8 @@ REST API для управления инцидентами, сотрудник�
         },
         security: [{ BearerAuth: [] }]
     },
-    // Путь к файлам с JSDoc-аннотациями
-    apis: ['./src/routes/*.js']
+    // Используем __dirname для надёжного пути (работает и локально и на Vercel)
+    apis: [`${__dirname}/routes/*.js`]
 };
 
 const swaggerSpec = swaggerJsdoc(options);
