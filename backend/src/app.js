@@ -89,7 +89,6 @@ app.get('/api/health', (req, res) => {
 // На Vercel swagger-ui-express не работает (serverless ограничения),
 // поэтому используем CDN версию с кастомной HTML страницей
 app.get('/api/docs', (req, res) => {
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
     res.setHeader('Content-Type', 'text/html');
     res.send(`<!DOCTYPE html>
 <html lang="ru">
@@ -110,12 +109,11 @@ app.get('/api/docs', (req, res) => {
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
     <script>
         SwaggerUIBundle({
-            url: "${baseUrl}/api/docs.json",
+            url: "/api/docs.json",
             dom_id: '#swagger-ui',
             presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
             layout: "BaseLayout",
             deepLinking: true,
-            supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
         });
     </script>
 </body>
