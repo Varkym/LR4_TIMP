@@ -40,9 +40,11 @@ app.use(cors({
     credentials: true
 }));
 
-// Helmet - заголовки безопасности (с разрешением crossOrigin для загрузки изображений)
+// Helmet - заголовки безопасности
+// contentSecurityPolicy отключён чтобы Swagger UI мог загружать свои ресурсы
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: false  // Swagger UI требует CDN-ресурсы
 }));
 
 // Логирование запросов
