@@ -138,5 +138,44 @@ router.delete('/:id', verifyToken, checkRole(['admin']), async (req, res) => {
         res.status(500).json({ error: 'Ошибка сервера при удалении записи.' });
     }
 });
+// PUT /api/auth/change-password — Смена пароля
+router.put('/change-password', verifyToken, async (req, res) => {
+    const { newPassword } = req.body;
+    const userId = req.user.id;
+
+    if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ error: 'Пароль должен содержать минимум 6 символов.' });
+    }
+
+    try {
+        // 1. Получаем текущий хеш пароля из БД
+        const userResult = await pool.query(
+            'SELECT "Хеш_пароля" FROM "Пользователи" WHERE "Идентификатор_пользователя" = $1',
+            [userId]
+        );
+        if (userResult.rows.length === 0) return res.status(404).json({ error: 'Пользователь не найден.' });
+
+        const currentHash = userResult.rows[0].Хеш_пароля;
+
+        // 2. Проверяем, не совпадает ли новый пароль со старым
+        const isSame = await bcrypt.compare(newPassword, currentHash);
+        if (isSame) {
+            // Вот это уведомление об ошибке, если пароль такой же!
+            return res.status(400).json({ error: 'Новый пароль не должен совпадать со старым.' });
+        }
+
+        // 3. Хешируем новый пароль и обновляем в БД
+        const newHash = await bcrypt.hash(newPassword, 10);
+        await pool.query(
+            'UPDATE "Пользователи" SET "Хеш_пароля" = $1 WHERE "Идентификатор_пользователя" = $2',
+            [newHash, userId]
+        );
+
+        res.json({ message: 'Пароль успешно изменён.' });
+    } catch (err) {
+        console.error('[PUT /change-password]', err);
+        res.status(500).json({ error: 'Ошибка сервера.' });
+    }
+});
 
 module.exports = router;
