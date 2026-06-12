@@ -212,110 +212,6 @@ const Incidents = () => {
         fontWeight: '600', color: 'var(--color-text-primary)'
     };
 
-    const IncidentForm = ({ onSubmit, title }) => (
-        <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) { setShowCreateModal(false); setShowEditModal(false); } }}>
-            <div style={modalContent}>
-                <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '24px' }}>{title}</h2>
-                <form onSubmit={onSubmit}>
-                    <label style={labelStyle}>
-                        Тип инцидента
-                        <select value={formData.Тип_инцидента}
-                            onChange={e => setFormData({ ...formData, Тип_инцидента: e.target.value })}
-                            required style={inputStyle}>
-                            <option value="">Выберите тип</option>
-                            <option value="Утечка данных">Утечка данных</option>
-                            <option value="DDoS-атака">DDoS-атака</option>
-                            <option value="Фишинг">Фишинг</option>
-                            <option value="Вредоносное ПО">Вредоносное ПО</option>
-                            <option value="Несанкционированный доступ">Несанкционированный доступ</option>
-                            <option value="Другое">Другое</option>
-                        </select>
-                    </label>
-
-                    <label style={labelStyle}>
-                        Описание
-                        <textarea value={formData.Описание}
-                            onChange={e => setFormData({ ...formData, Описание: e.target.value })}
-                            required rows={3}
-                            placeholder="Опишите инцидент..."
-                            style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
-                    </label>
-
-                    <label style={labelStyle}>
-                        Уровень угрозы: {formData.Уровень_угрозы}
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                            {[1, 2, 3, 4, 5].map(level => {
-                                const sc = getSeverityColor(level);
-                                return (
-                                    <button type="button" key={level}
-                                        onClick={() => setFormData({ ...formData, Уровень_угрозы: level })}
-                                        style={{
-                                            width: '44px', height: '44px', borderRadius: '12px',
-                                            border: formData.Уровень_угрозы === level ? `2px solid ${sc.border}` : '2px solid var(--color-border)',
-                                            backgroundColor: formData.Уровень_угрозы === level ? sc.bg : 'white',
-                                            color: sc.text, fontWeight: '700', fontSize: '16px',
-                                            cursor: 'pointer', transition: 'all 0.2s'
-                                        }}>
-                                        {level}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </label>
-
-                    <label style={labelStyle}>
-                        Статус
-                        <select value={formData.Статус}
-                            onChange={e => setFormData({ ...formData, Статус: e.target.value })}
-                            style={inputStyle}>
-                            <option value="Новый">Новый</option>
-                            <option value="В работе">В работе</option>
-                            <option value="Закрыт">Закрыт</option>
-                        </select>
-                    </label>
-
-                    <label style={labelStyle}>
-                        Услуга
-                        <select value={formData.Идентификатор_услуги}
-                            onChange={e => setFormData({ ...formData, Идентификатор_услуги: e.target.value })}
-                            style={inputStyle}>
-                            <option value="">Не выбрана</option>
-                            {services.map(s => (
-                                <option key={s.Идентификатор_услуги} value={s.Идентификатор_услуги}>
-                                    {s.Название_услуги}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-
-                    <label style={labelStyle}>
-                        Ответственный сотрудник
-                        <select value={formData.Идентификатор_сотрудника}
-                            onChange={e => setFormData({ ...formData, Идентификатор_сотрудника: e.target.value })}
-                            style={inputStyle}>
-                            <option value="">Не выбран</option>
-                            {employees.map(e => (
-                                <option key={e.Идентификатор_сотрудника} value={e.Идентификатор_сотрудника}>
-                                    {e.Фамилия} {e.Имя}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                        <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px' }}>
-                            {showEditModal ? 'Сохранить' : 'Создать'}
-                        </button>
-                        <button type="button" className="btn-secondary"
-                            onClick={() => { setShowCreateModal(false); setShowEditModal(false); }}
-                            style={{ flex: 1, padding: '12px' }}>
-                            Отмена
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
 
     if (loading) {
         return (
@@ -602,9 +498,112 @@ const Incidents = () => {
                 </div>
             </div>
 
-            {/* Модальные окна */}
-            {showCreateModal && <IncidentForm onSubmit={handleCreate} title="Новый инцидент" />}
-            {showEditModal && <IncidentForm onSubmit={handleEdit} title="Редактирование инцидента" />}
+            {(showCreateModal || showEditModal) && (
+                <div style={modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) { setShowCreateModal(false); setShowEditModal(false); } }}>
+                    <div style={modalContent}>
+                        <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '24px' }}>
+                            {showEditModal ? 'Редактирование инцидента' : 'Новый инцидент'}
+                        </h2>
+                        <form onSubmit={showEditModal ? handleEdit : handleCreate}>
+                            <label style={labelStyle}>
+                                Тип инцидента
+                                <select value={formData.Тип_инцидента}
+                                    onChange={e => setFormData({ ...formData, Тип_инцидента: e.target.value })}
+                                    required style={inputStyle}>
+                                    <option value="">Выберите тип</option>
+                                    <option value="Утечка данных">Утечка данных</option>
+                                    <option value="DDoS-атака">DDoS-атака</option>
+                                    <option value="Фишинг">Фишинг</option>
+                                    <option value="Вредоносное ПО">Вредоносное ПО</option>
+                                    <option value="Несанкционированный доступ">Несанкционированный доступ</option>
+                                    <option value="Другое">Другое</option>
+                                </select>
+                            </label>
+
+                            <label style={labelStyle}>
+                                Описание
+                                <textarea value={formData.Описание}
+                                    onChange={e => setFormData({ ...formData, Описание: e.target.value })}
+                                    required rows={3}
+                                    placeholder="Опишите инцидент..."
+                                    style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }} />
+                            </label>
+
+                            <label style={labelStyle}>
+                                Уровень угрозы: {formData.Уровень_угрозы}
+                                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                    {[1, 2, 3, 4, 5].map(level => {
+                                        const sc = getSeverityColor(level);
+                                        return (
+                                            <button type="button" key={level}
+                                                onClick={() => setFormData({ ...formData, Уровень_угрозы: level })}
+                                                style={{
+                                                    width: '44px', height: '44px', borderRadius: '12px',
+                                                    border: formData.Уровень_угрозы === level ? `2px solid ${sc.border}` : '2px solid var(--color-border)',
+                                                    backgroundColor: formData.Уровень_угрозы === level ? sc.bg : 'white',
+                                                    color: sc.text, fontWeight: '700', fontSize: '16px',
+                                                    cursor: 'pointer', transition: 'all 0.2s'
+                                                }}>
+                                                {level}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </label>
+
+                            <label style={labelStyle}>
+                                Статус
+                                <select value={formData.Статус}
+                                    onChange={e => setFormData({ ...formData, Статус: e.target.value })}
+                                    style={inputStyle}>
+                                    <option value="Новый">Новый</option>
+                                    <option value="В работе">В работе</option>
+                                    <option value="Закрыт">Закрыт</option>
+                                </select>
+                            </label>
+
+                            <label style={labelStyle}>
+                                Услуга
+                                <select value={formData.Идентификатор_услуги}
+                                    onChange={e => setFormData({ ...formData, Идентификатор_услуги: e.target.value })}
+                                    style={inputStyle}>
+                                    <option value="">Не выбрана</option>
+                                    {services.map(s => (
+                                        <option key={s.Идентификатор_услуги} value={s.Идентификатор_услуги}>
+                                            {s.Название_услуги}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <label style={labelStyle}>
+                                Ответственный сотрудник
+                                <select value={formData.Идентификатор_сотрудника}
+                                    onChange={e => setFormData({ ...formData, Идентификатор_сотрудника: e.target.value })}
+                                    style={inputStyle}>
+                                    <option value="">Не выбран</option>
+                                    {employees.map(e => (
+                                        <option key={e.Идентификатор_сотрудника} value={e.Идентификатор_сотрудника}>
+                                            {e.Фамилия} {e.Имя}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                                <button type="submit" className="btn-primary" style={{ flex: 1, padding: '12px' }}>
+                                    {showEditModal ? 'Сохранить' : 'Создать'}
+                                </button>
+                                <button type="button" className="btn-secondary"
+                                    onClick={() => { setShowCreateModal(false); setShowEditModal(false); }}
+                                    style={{ flex: 1, padding: '12px' }}>
+                                    Отмена
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Детали инцидента */}
             {showDetailModal && selectedIncident && (
@@ -684,3 +683,14 @@ const Incidents = () => {
 };
 
 export default Incidents;
+
+
+
+
+
+
+
+
+
+
+
