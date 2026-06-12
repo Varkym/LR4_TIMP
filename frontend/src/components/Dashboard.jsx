@@ -14,7 +14,57 @@ const Dashboard = () => {
     const [typeData, setTypeData] = useState([]);
     const [animatedStats, setAnimatedStats] = useState({ incidents: 0, services: 0, employees: 0, vulnerabilities: 0 });
     const [activeSideItem, setActiveSideItem] = useState('dashboard');
+    const [showProfileModal, setShowProfileModal] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [profileData, setProfileData] = useState({ email: '', role: '' });
+    const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+    const [showPasswords, setShowPasswords] = useState({ new: false, confirm: false });
+    const [profileMsg, setProfileMsg] = useState({ text: '', type: '' });
+
+    // Открытие профиля (загружаем актуальные данные)
+    const openProfileModal = async () => {
+        try {
+            const res = await api.get('/api/auth/profile');
+            setProfileData(res.data);
+        } catch (e) { /* игнорируем */ }
+        setShowProfileModal(true);
+    };
+
+    // Смена пароля
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setProfileMsg({ text: '', type: '' });
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            return setProfileMsg({ text: 'Пароли не совпадают!', type: 'error' });
+        }
+
+        try {
+            await api.put('/api/auth/change-password', { newPassword: passwordData.newPassword });
+            setProfileMsg({ text: 'Пароль успешно изменён!', type: 'success' });
+            setPasswordData({ newPassword: '', confirmPassword: '' });
+            setTimeout(() => setShowProfileModal(false), 1500);
+        } catch (err) {
+            // Если бэкенд вернул 400 (пароль такой же), покажем ошибку
+            setProfileMsg({ text: err.response?.data?.error || 'Ошибка смены пароля', type: 'error' });
+        }
+    };
+    const getPasswordStrength = (password) => {
+        if (!password) return { strength: 0, text: '', color: '' };
+        if (password.length < 6) return { strength: 1, text: 'Слишком короткий', color: '#c53030' };
+
+        let strength = 0;
+        if (password.length >= 6) strength++;
+        if (password.length >= 10) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        if (strength <= 2) return { strength: 1, text: 'Слабый', color: '#c53030' };
+        if (strength <= 4) return { strength: 2, text: 'Средний', color: '#b45309' };
+        return { strength: 3, text: 'Надёжный', color: '#2d6a4f' };
+    };
     const navigate = useNavigate();
     const animRef = useRef(false);
 
@@ -194,15 +244,16 @@ const Dashboard = () => {
                 {/* Профиль */}
                 <div style={{ borderTop: '1px solid rgba(196,149,106,0.1)', paddingTop: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                        <div style={{
+                        <div onClick={openProfileModal} style={{
                             width: '34px', height: '34px', borderRadius: '10px',
                             background: 'linear-gradient(135deg, #fce4ec, #deedf8)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '12px', fontWeight: '700', color: '#c4788e', flexShrink: 0
+                            fontSize: '12px', fontWeight: '700', color: '#c4788e', flexShrink: 0,
+                            cursor: 'pointer'
                         }}>
                             {user.login.substring(0, 2).toUpperCase()}
                         </div>
-                        <div style={{ minWidth: 0 }}>
+                        <div style={{ minWidth: 0, cursor: 'pointer' }} onClick={openProfileModal}>
                             <div style={{ fontSize: '12px', fontWeight: '600', color: '#2c2825', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.login}</div>
                             <div style={{ fontSize: '10px', color: '#b0a8a2' }}>
                                 {user.role === 'admin' ? 'Администратор' : user.role === 'operator' ? 'Оператор' : 'Наблюдатель'}
@@ -217,41 +268,6 @@ const Dashboard = () => {
                         fontWeight: '500', cursor: 'pointer'
                     }}>Выйти</button>
                 </div>
-                {/* Модал подтверждения выхода */}
-                {showLogoutModal && (
-                    <div style={{
-                        position: 'fixed', inset: 0, zIndex: 1000,
-                        background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                        <div style={{
-                            background: '#fff', borderRadius: '20px', padding: '32px',
-                            maxWidth: '380px', width: '90%', textAlign: 'center',
-                            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                            border: '1px solid rgba(244,165,192,0.3)'
-                        }}>
-                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>👋</div>
-                            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: '#333' }}>
-                                Выйти из аккаунта?
-                            </h3>
-                            <p style={{ margin: '0 0 24px', color: '#888', fontSize: '14px' }}>
-                                Вы уверены, что хотите выйти?
-                            </p>
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                                <button onClick={() => setShowLogoutModal(false)} style={{
-                                    padding: '10px 24px', borderRadius: '10px', border: '2px solid #e0e0e0',
-                                    background: '#fff', color: '#555', fontSize: '14px', fontWeight: '600',
-                                    cursor: 'pointer'
-                                }}>Отмена</button>
-                                <button onClick={handleLogout} style={{
-                                    padding: '10px 24px', borderRadius: '10px', border: 'none',
-                                    background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
-                                    color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer'
-                                }}>Выйти</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </aside>
 
             {/* Контент */}
@@ -471,13 +487,194 @@ const Dashboard = () => {
                     </div>
                 </div>
             </main>
+            {/* Модал профиля и смены пароля */}
+            {showProfileModal && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 1000,
+                    background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: '#fff', borderRadius: '20px', padding: '32px',
+                        maxWidth: '400px', width: '90%',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(244,165,192,0.3)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#333' }}>
+                                Профиль: {user.login}
+                            </h3>
+                            <button onClick={() => setShowProfileModal(false)} style={{
+                                width: '32px', height: '32px', borderRadius: '50%',
+                                border: '1px solid #e0e0e0', background: '#fff', cursor: 'pointer', fontSize: '16px',
+                                color: '#666', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>✕</button>
+                        </div>
+
+                        <div style={{ marginBottom: '20px', padding: '12px', background: '#f9f9f9', borderRadius: '10px', fontSize: '13px' }}>
+                            <div style={{ color: '#888', marginBottom: '4px' }}>Email:</div>
+                            <div style={{ fontWeight: '600', color: '#333' }}>{profileData.Email || 'Не указан'}</div>
+                            <div style={{ color: '#888', marginTop: '8px', marginBottom: '4px' }}>Роль:</div>
+                            <div style={{ fontWeight: '600', color: '#333' }}>
+                                {profileData.Роль === 'admin' ? 'Администратор' : profileData.Роль === 'operator' ? 'Оператор' : 'Наблюдатель'}
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleChangePassword}>
+                            <label style={{ display: 'block', marginBottom: '12px', fontSize: '13px', fontWeight: '600' }}>
+                                Новый пароль
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showPasswords.new ? 'text' : 'password'}
+                                        value={passwordData.newPassword}
+                                        onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                        required
+                                        style={{ width: '100%', marginTop: '6px', padding: '10px 40px 10px 10px', borderRadius: '8px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            fontSize: '16px',
+                                            color: '#888',
+                                            padding: '0'
+                                        }}
+                                    >
+                                        {showPasswords.new ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                                {/* Индикатор надёжности */}
+                                {passwordData.newPassword && (
+                                    <div style={{ marginTop: '6px', fontSize: '11px' }}>
+                                        <div style={{
+                                            height: '3px',
+                                            background: '#e0e0e0',
+                                            borderRadius: '2px',
+                                            marginTop: '4px'
+                                        }}>
+                                            <div style={{
+                                                width: getPasswordStrength(passwordData.newPassword).strength === 1 ? '33%' :
+                                                    getPasswordStrength(passwordData.newPassword).strength === 2 ? '66%' : '100%',
+                                                height: '100%',
+                                                background: getPasswordStrength(passwordData.newPassword).color,
+                                                borderRadius: '2px',
+                                                transition: 'all 0.3s'
+                                            }}></div>
+                                        </div>
+                                        <span style={{ color: getPasswordStrength(passwordData.newPassword).color }}>
+                                            {getPasswordStrength(passwordData.newPassword).text}
+                                        </span>
+                                    </div>
+                                )}
+                            </label>
+
+                            <label style={{ display: 'block', marginBottom: '16px', fontSize: '13px', fontWeight: '600' }}>
+                                Подтвердите пароль
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showPasswords.confirm ? 'text' : 'password'}
+                                        value={passwordData.confirmPassword}
+                                        onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                        required
+                                        style={{ width: '100%', marginTop: '6px', padding: '10px 40px 10px 10px', borderRadius: '8px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            fontSize: '16px',
+                                            color: '#888',
+                                            padding: '0'
+                                        }}
+                                    >
+                                        {showPasswords.confirm ? '🙈' : '👁️'}
+                                    </button>
+                                </div>
+                                {/* Проверка совпадения */}
+                                {passwordData.confirmPassword && (
+                                    <div style={{ marginTop: '6px', fontSize: '11px' }}>
+                                        {passwordData.newPassword === passwordData.confirmPassword ? (
+                                            <span style={{ color: '#2d6a4f' }}>✓ Пароли совпадают</span>
+                                        ) : (
+                                            <span style={{ color: '#c53030' }}>✗ Пароли не совпадают</span>
+                                        )}
+                                    </div>
+                                )}
+                            </label>
+
+                            {profileMsg.text && (
+                                <div style={{
+                                    padding: '10px', borderRadius: '8px', marginBottom: '16px',
+                                    fontSize: '13px', fontWeight: '500', textAlign: 'center',
+                                    background: profileMsg.type === 'error' ? 'rgba(232,160,176,0.15)' : 'rgba(138,172,142,0.15)',
+                                    color: profileMsg.type === 'error' ? '#c53030' : '#2d6a4f'
+                                }}>
+                                    {profileMsg.text}
+                                </div>
+                            )}
+
+                            <button type="submit" className="btn-primary" style={{ width: '100%', padding: '12px' }}>
+                                Сменить пароль
+                            </button>
+
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Модал подтверждения выхода */}
+            {showLogoutModal && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 1000,
+                    background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: '#fff', borderRadius: '20px', padding: '32px',
+                        maxWidth: '380px', width: '90%', textAlign: 'center',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                        border: '1px solid rgba(244,165,192,0.3)'
+                    }}>
+                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>👋</div>
+                        <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: '#333' }}>
+                            Выйти из аккаунта?
+                        </h3>
+                        <p style={{ margin: '0 0 24px', color: '#888', fontSize: '14px' }}>
+                            Вы уверены, что хотите выйти?
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                            <button onClick={() => setShowLogoutModal(false)} style={{
+                                padding: '10px 24px', borderRadius: '10px', border: '2px solid #e0e0e0',
+                                background: '#fff', color: '#555', fontSize: '14px', fontWeight: '600',
+                                cursor: 'pointer'
+                            }}>Отмена</button>
+                            <button onClick={handleLogout} style={{
+                                padding: '10px 24px', borderRadius: '10px', border: 'none',
+                                background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+                                color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer'
+                            }}>Выйти</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default Dashboard;
-
-
-
 
 
