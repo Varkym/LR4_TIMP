@@ -14,6 +14,7 @@ const Dashboard = () => {
     const [typeData, setTypeData] = useState([]);
     const [animatedStats, setAnimatedStats] = useState({ incidents: 0, services: 0, employees: 0, vulnerabilities: 0 });
     const [activeSideItem, setActiveSideItem] = useState('dashboard');
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const navigate = useNavigate();
     const animRef = useRef(false);
 
@@ -76,9 +77,9 @@ const Dashboard = () => {
     };
 
     const handleLogout = async () => {
+        setShowLogoutModal(false); // Закрываем модал
         const refreshToken = localStorage.getItem('refreshToken');
         try {
-            // Инвалидируем refresh-токен на сервере
             await api.post('/api/auth/logout', { refreshToken });
         } catch (e) { /* игнорируем ошибки */ }
         localStorage.removeItem('token');
@@ -86,7 +87,6 @@ const Dashboard = () => {
         localStorage.removeItem('user');
         navigate('/');
     };
-
     // Активность по дням (из реальных инцидентов)
     const getActivityData = () => {
         const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -209,7 +209,7 @@ const Dashboard = () => {
                             </div>
                         </div>
                     </div>
-                    <button onClick={handleLogout} style={{
+                    <button onClick={() => setShowLogoutModal(true)} style={{
                         width: '100%', padding: '8px', borderRadius: '8px',
                         background: 'linear-gradient(135deg, rgba(232,160,176,0.1), rgba(154,184,216,0.1))',
                         color: '#c4788e',
@@ -217,6 +217,41 @@ const Dashboard = () => {
                         fontWeight: '500', cursor: 'pointer'
                     }}>Выйти</button>
                 </div>
+                {/* Модал подтверждения выхода */}
+                {showLogoutModal && (
+                    <div style={{
+                        position: 'fixed', inset: 0, zIndex: 1000,
+                        background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <div style={{
+                            background: '#fff', borderRadius: '20px', padding: '32px',
+                            maxWidth: '380px', width: '90%', textAlign: 'center',
+                            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                            border: '1px solid rgba(244,165,192,0.3)'
+                        }}>
+                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>👋</div>
+                            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: '700', color: '#333' }}>
+                                Выйти из аккаунта?
+                            </h3>
+                            <p style={{ margin: '0 0 24px', color: '#888', fontSize: '14px' }}>
+                                Вы уверены, что хотите выйти?
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                <button onClick={() => setShowLogoutModal(false)} style={{
+                                    padding: '10px 24px', borderRadius: '10px', border: '2px solid #e0e0e0',
+                                    background: '#fff', color: '#555', fontSize: '14px', fontWeight: '600',
+                                    cursor: 'pointer'
+                                }}>Отмена</button>
+                                <button onClick={handleLogout} style={{
+                                    padding: '10px 24px', borderRadius: '10px', border: 'none',
+                                    background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+                                    color: '#fff', fontSize: '14px', fontWeight: '600', cursor: 'pointer'
+                                }}>Выйти</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </aside>
 
             {/* Контент */}
@@ -441,3 +476,8 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
+
+
+
